@@ -13,6 +13,7 @@ jobs:
 
       - name: Extract Noviq AI project
         run: |
+          mkdir -p extracted
           unzip -o noviq-ai.zip -d extracted
 
       - name: Set up JDK 17
@@ -21,14 +22,26 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Generate debug keystore
+        run: |
+          keytool -genkeypair -v \
+            -keystore extracted/debug.keystore \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: 9.3.1
+          gradle-version: '9.3.1'
 
       - name: Find Android project
         run: |
-          find extracted -maxdepth 3 -type f \( -name "settings.gradle*" -o -name "build.gradle*" \)
+          find extracted -maxdepth 3 -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" \) -print
 
       - name: Build Debug APK
         run: |
